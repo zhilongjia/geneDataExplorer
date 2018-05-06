@@ -19,7 +19,6 @@ ui <- fluidPage(
         mainPanel(
             
             DTOutput("pheno_view")
-            
         )
     )
 )
