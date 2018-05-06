@@ -49,9 +49,10 @@ server <- function(input, output) {
     
 
     output$pheno_view <- renderDT({
-        datatable(phenoData(), rownames = FALSE, 
+        datatable(phenoData(), rownames = TRUE, 
+                  filter = "bottom",
                   extensions = c('Buttons', 'ColReorder'),
-                  options = list(dom = 'Bfrtip', colReorder = TRUE, 
+                  options = list(dom = 'Bfrtip', colReorder = TRUE,
                                  buttons = list(list(extend = 'colvis'))) )
     },
         options = list(autoWidth = TRUE,initComplete = I("function(settings, json) {alert('Done.');}") )
