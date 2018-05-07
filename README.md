@@ -1,15 +1,14 @@
 Gene Data Explorer
-=======
+=================
 
 Function:
 
-- GSE input: supported
-- GPL input:  supported
-
+- GSE ID input: supported
+- GPL ID input:  supported
+- ArrayExpress ID input:  supported
 
 To do list
 
-- ArrayExpress input
-- Gene Expression Nebulas input
+- Gene Expression Nebulas ID input
 
-May 6, 2018
+May 7, 2018

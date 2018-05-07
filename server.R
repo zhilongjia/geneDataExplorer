@@ -1,11 +1,13 @@
 library(GEOquery)
 library(dplyr)
 library(DT)
+# library(ArrayExpress)
+library(readr)
 
 #get key colnames based on having different text
 key_col_filter <- function(raw_table) {
     wanted_colnames <- names(which(apply(raw_table, 2, function(x) { length(table(x)) > 1 } )))
-    unwanted_colnames <- colnames(raw_table)[grep("relation|file", colnames(raw_table) )]
+    unwanted_colnames <- colnames(raw_table)[grep("relation|file|FASTQ_URI|scan", colnames(raw_table), ignore.case=TRUE )]
     
     other_colnames <- colnames(raw_table)[na.omit(pmatch(c("last_update_date", "source", "organism"), colnames(raw_table)))]
     
@@ -26,25 +28,44 @@ server <- function(input, output) {
     phenoData <- reactive({
         raw_input <- input$dataset_ID
         
-        switch(gsub("[[:digit:]]", "", raw_input),
-        GSE = {
+        if (gsub("[[:digit:]]", "", raw_input)=="GSE") {
             GSEseries <- getGEO(raw_input, destdir="./.data")
-                
+            
             # GSEseries <- getGEO("GSE68939", destdir="./.data")
-                
+            
             pheno_rawTable <- pData(GSEseries[[1]])
             wanted_colnames <- key_col_filter(pheno_rawTable)
-
-            show_Table <- dplyr::select(pheno_rawTable, wanted_colnames )
-            },
             
-        GPL = {
+            show_Table <- dplyr::select(pheno_rawTable, wanted_colnames )
+            
+        } else if (gsub("[[:digit:]]", "", raw_input)=="GPL") {
             GPL_raw <- getGEO(raw_input, destdir="./.data")
             # GPL_raw <- getGEO("GPL13607", destdir="./.data")
             show_Table <- Table(GPL_raw)
-            }
-              
-        )
+            
+        } else if (grepl("E-", gsub("[[:digit:]]", "", raw_input) ) ) {
+            # rawset <- ArrayExpress("E-MEXP-1422", path="./.data", drop=FALSE)
+            # pheno_rawTable <- pData(rawset)
+            
+            base_url <- "https://www.ebi.ac.uk/arrayexpress/files/"
+            pheno_rawTable <- read_tsv(paste0(base_url, raw_input, "/", raw_input, ".sdrf.txt") )
+            
+            wanted_colnames <- key_col_filter(pheno_rawTable)
+            
+            
+            show_Table <- dplyr::select(pheno_rawTable, wanted_colnames )
+            
+        } else if (grepl("A-", gsub("[[:digit:]]", "", raw_input) )){
+            base_url <- "https://www.ebi.ac.uk/arrayexpress/files/"
+            array_design_url <- paste0(base_url, raw_input, "/", raw_input, ".adf.txt")
+            main_linenumber <- grep("\\[main\\]", readLines(array_design_url, n=500))
+            
+            show_Table <- read_tsv(array_design_url, skip=main_linenumber)
+
+        } else {
+            print ("Error Input. Examples: E-MTAB-1851, A-AFFY-37, GSE78023, GPL13607.")
+        }
+
         return (show_Table)
     })
     
