@@ -7,8 +7,9 @@ key_col_filter <- function(raw_table) {
     wanted_colnames <- names(which(apply(raw_table, 2, function(x) { length(table(x)) > 1 } )))
     unwanted_colnames <- colnames(raw_table)[grep("relation|file", colnames(raw_table) )]
     
-    other_colnames <- intersect(c("last_update_date", "source_name", "molecule", "library_strategy"), 
-                                colnames(raw_table) ) 
+    other_colnames <- colnames(raw_table)[na.omit(pmatch(c("last_update_date", "source", "organism"), colnames(raw_table)))]
+    
+    # other_colnames <- intersect(c("last_update_date", "source_name", "molecule", "library_strategy"), colnames(raw_table) ) 
     
     wanted_colnames <- c(setdiff(wanted_colnames, unwanted_colnames), other_colnames)
     return(wanted_colnames)
@@ -29,7 +30,7 @@ server <- function(input, output) {
         GSE = {
             GSEseries <- getGEO(raw_input, destdir="./.data")
                 
-            # GSEseries <- getGEO("GSE107871", destdir="./.data")
+            # GSEseries <- getGEO("GSE68939", destdir="./.data")
                 
             pheno_rawTable <- pData(GSEseries[[1]])
             wanted_colnames <- key_col_filter(pheno_rawTable)
@@ -60,13 +61,13 @@ server <- function(input, output) {
                                                 list(extend = 'csv', filename=input$dataset_ID) ),
                                  fixedHeader = TRUE,
                                  lengthMenu = c(10, 5, 25, 100),
-                                 columnDefs = list(list(targets = 1:ncol(phenoData()), render = JS( "function(data, type, row, meta) {", 
+                                 columnDefs = list(list(targets = 3:ncol(phenoData()), render = JS( "function(data, type, row, meta) {", 
                                                                                   "return type === 'display' && data.length > 50 ?", 
                                                                                   "'<span title=\"' + data + '\">' + data.substr(0, 50) + '...</span>' : data;", 
                                                                                   "}") )),
 
                                  scrollX = TRUE,
-                                 fixedColumns = list(leftColumns = 3) ) )
+                                 fixedColumns = list(leftColumns = 2) ) )
     },
         options = list(autoWidth = TRUE, 
                        initComplete = I("function(settings, json) {alert('Done.');}") )
