@@ -50,12 +50,26 @@ server <- function(input, output) {
 
     output$pheno_view <- renderDT({
         datatable(phenoData(), rownames = TRUE, 
-                  filter = "bottom",
-                  extensions = c('Buttons', 'ColReorder'),
-                  options = list(dom = 'Bfrtip', colReorder = TRUE,
-                                 buttons = list(list(extend = 'colvis'))) )
+                  filter = "bottom", 
+                  class = 'nowrap display',
+                  extensions = c('Buttons', 'ColReorder', 'FixedColumns', 'Scroller'),
+                  options = list(dom = 'frBtip', 
+                                 colReorder = TRUE,
+                                 buttons = list(list(extend = 'colvis'), 
+                                                'pageLength',
+                                                list(extend = 'csv', filename=input$dataset_ID) ),
+                                 fixedHeader = TRUE,
+                                 lengthMenu = c(10, 5, 25, 100),
+                                 columnDefs = list(list(targets = 1:ncol(phenoData()), render = JS( "function(data, type, row, meta) {", 
+                                                                                  "return type === 'display' && data.length > 50 ?", 
+                                                                                  "'<span title=\"' + data + '\">' + data.substr(0, 50) + '...</span>' : data;", 
+                                                                                  "}") )),
+
+                                 scrollX = TRUE,
+                                 fixedColumns = list(leftColumns = 3) ) )
     },
-        options = list(autoWidth = TRUE,initComplete = I("function(settings, json) {alert('Done.');}") )
+        options = list(autoWidth = TRUE, 
+                       initComplete = I("function(settings, json) {alert('Done.');}") )
     )
     
 }
